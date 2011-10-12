@@ -1,0 +1,7 @@
+
+For more information on scheme_on_ruby, see http://scheme_on_ruby.rubyforge.org
+
+NOTE: Change this information in PostInstall.txt 
+You can also delete it if you don't want it.
+
+
