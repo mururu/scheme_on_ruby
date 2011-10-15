@@ -28,13 +28,13 @@ def parse(tokens)
     contents[first,0] = parse(inner_contents)
   end
   if contents[0] == "define"
-    unless $variables.has_key?(contents[1].intern)
-      $variables[contents[1].intern] = eval(contents[2])
+    unless $variables.has_key?(contents[1].downcase.intern)
+      $variables[contents[1].downcase.intern] = eval(contents[2])
     end
   end
   if contents[0] == "set!"
-    if $variables.has_key?(contents[1].intern)
-      $variables[contents[1].intern] = eval(contents[2].to_s)
+    if $variables.has_key?(contents[1].downcase.intern)
+      $variables[contents[1].downcase.intern] = eval(contents[2].to_s)
     end
   end
   if contents[0] == "+"
@@ -52,7 +52,7 @@ def parse(tokens)
   if tokens[0] =~ /[1-9][0-9]*/ or tokens[0] == "0" or tokens[0] =~ /[1-9][0-9]*\.[0-9]+/ or tokens =~ /0\.[0-9]+/
     return tokens[0].to_f
   else
-    return $variables[tokens[0].intern]
+    return $variables[tokens[0].downcase.intern]
   end
 end
 
