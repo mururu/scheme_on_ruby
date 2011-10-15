@@ -20,12 +20,19 @@ def tokenize(line)
 end
 
 def parse(tokens)
+  p tokens
   contents = tokens[1...(tokens.length-1)]
-  if contents.include?("(")
-    first = contents.index("(")
-    last = contents.length - contents.reverse.index(")") - 1
-    inner_contents = contents.slice!(first..last)
-    contents[first,0] = parse(inner_contents)
+  while contents.include?("(")
+    left = contents.index("(")
+    num = 1
+    right = left #righti"("の位置ではないけど暫定的に
+    while true
+      right = contents[(right+1)...(contents.length)].index(")") + right + 1
+      break if num == contents.slice(left,right).find_all{|ch|ch=="("}.length
+      num += 1
+    end
+    inner_contents = contents.slice!(left..right)
+    contents[left,0] = parse(inner_contents)
   end
   if contents[0] == "define"
     unless $variables.has_key?(contents[1].downcase.intern)
@@ -49,8 +56,10 @@ def parse(tokens)
   if contents[0] == "/"
     return parse([contents[1]]) * parse([contents[1]]) / contents[1...(contents.length)].inject(1){|sum, i| sum * parse([i]) }
   end
-  if tokens[0] =~ /-+[1-9][0-9]*/ or tokens[0] == "0" or tokens[0] =~ /-+[1-9][0-9]*\.[0-9]+/ or tokens =~ /-+0\.[0-9]+/
+  if tokens[0] =~ /-?[1-9][0-9]*/ or tokens[0] == "0" or tokens[0] =~ /-?[1-9][0-9]*\.[0-9]+/ or tokens =~ /-?0\.[0-9]+/
     return tokens[0].to_f
+  elsif tokens[0].class.ancestors.include?(Numeric)
+    return tokens[0]
   else
     return $variables[tokens[0].downcase.intern]
   end
