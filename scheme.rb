@@ -34,7 +34,7 @@ def parse(tokens)
   end
   if contents[0] == "set!"
     if $variables.has_key?(contents[1].intern)
-      $variables[contents[1].intern] = eval(contents[2])
+      $variables[contents[1].intern] = eval(contents[2].to_s)
     end
   end
   if contents[0] == "+"
