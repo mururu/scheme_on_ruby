@@ -49,7 +49,7 @@ def parse(tokens)
   if contents[0] == "/"
     return parse([contents[1]]) * parse([contents[1]]) / contents[1...(contents.length)].inject(1){|sum, i| sum * parse([i]) }
   end
-  if tokens[0] =~ /[1-9][0-9]*/ or tokens[0] == "0" or tokens[0] =~ /[1-9][0-9]*\.[0-9]+/ or tokens =~ /0\.[0-9]+/
+  if tokens[0] =~ /-+[1-9][0-9]*/ or tokens[0] == "0" or tokens[0] =~ /-+[1-9][0-9]*\.[0-9]+/ or tokens =~ /-+0\.[0-9]+/
     return tokens[0].to_f
   else
     return $variables[tokens[0].downcase.intern]
