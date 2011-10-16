@@ -20,12 +20,11 @@ def tokenize(line)
 end
 
 def parse(tokens)
-  p tokens
   contents = tokens[1...(tokens.length-1)]
   while contents.include?("(")
     left = contents.index("(")
     num = 1
-    right = left #righti"("の位置ではないけど暫定的に
+    right = left #right"("の位置ではないけど暫定的に
     while true
       right = contents[(right+1)...(contents.length)].index(")") + right + 1
       break if num == contents.slice(left,right).find_all{|ch|ch=="("}.length
@@ -36,7 +35,7 @@ def parse(tokens)
   end
   if contents[0] == "define"
     unless $variables.has_key?(contents[1].downcase.intern)
-      $variables[contents[1].downcase.intern] = eval(contents[2])
+      $variables[contents[1].downcase.intern] = eval(contents[2].to_s)
     end
   end
   if contents[0] == "set!"
