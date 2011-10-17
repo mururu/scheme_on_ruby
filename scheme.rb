@@ -8,7 +8,13 @@ def tokenize(line)
   temp.each do |word|
     if(word =~ /\(/)
       tokens.push($&)
-      tokens.push($')
+      back = $'
+      if(back =~ /\)/)
+        tokens.push($`)
+        tokens.push($&)
+      else
+        tokens.push(back)
+      end
     elsif(word =~ /\)+/)
       tokens.push($`)
       $&.each_char{|char| tokens.push(char)}
@@ -21,7 +27,20 @@ end
 
 def parse(tokens)
   contents = tokens[1...(tokens.length-1)]
+  if contents[0] == "lambda"
+    p contents
+    return Class.new do
+      p contents
+      @args = Array.new
+      temp = contents.index(")")
+      ((contents.index("(")+1)...temp).each{|val|@args.push(contents[val].intern)}
+      @len = @args.length
+      @func = contents.slice(temp+1,contents.length)
+      attr_reader :args, :len, :func
+    end
+  end
   while contents.include?("(")
+    p contents
     left = contents.index("(")
     num = 1
     right = left #right"("の位置ではないけど暫定的に
@@ -35,7 +54,11 @@ def parse(tokens)
   end
   if contents[0] == "define"
     unless $variables.has_key?(contents[1].downcase.intern)
-      $variables[contents[1].downcase.intern] = eval(contents[2].to_s)
+      unless contents[2].class == Class
+        $variables[contents[1].downcase.intern] = eval(contents[2].to_s)
+      else
+        $variables[contents[1].downcase.intern] = contents[2]
+      end
     end
   end
   if contents[0] == "set!"
