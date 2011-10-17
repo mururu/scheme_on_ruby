@@ -1,46 +1,44 @@
 # encoding: utf-8
 
 $variables = Hash.new
+class Function
+  attr_accessor :args, :len, :func
+end
 
 def tokenize(line)
   temp = line.split()
   tokens = Array.new
   temp.each do |word|
-    if(word =~ /\(/)
+    while word =~ /\(/
       tokens.push($&)
-      back = $'
-      if(back =~ /\)/)
-        tokens.push($`)
-        tokens.push($&)
-      else
-        tokens.push(back)
-      end
-    elsif(word =~ /\)+/)
+      word = $'
+    end
+    if word =~ /\)/
       tokens.push($`)
-      $&.each_char{|char| tokens.push(char)}
+      tokens.push($&)
+      word = $'
     else
       tokens.push(word)
+    end  
+    while word =~ /\)/
+      tokens.push($&)
+      word = $'
     end
   end
-  tokens
 end
 
 def parse(tokens)
   contents = tokens[1...(tokens.length-1)]
   if contents[0] == "lambda"
-    p contents
-    return Class.new do
-      p contents
-      @args = Array.new
-      temp = contents.index(")")
-      ((contents.index("(")+1)...temp).each{|val|@args.push(contents[val].intern)}
-      @len = @args.length
-      @func = contents.slice(temp+1,contents.length)
-      attr_reader :args, :len, :func
-    end
+    obj = Function.new
+    obj.args = Array.new
+    temp = contents.index(")")
+    ((contents.index("(")+1)...temp).each{|val|obj.args.push(contents[val].intern)}
+    obj.len = obj.args.length
+    obj.func = contents.slice(temp+1,contents.length)
+    return obj
   end
   while contents.include?("(")
-    p contents
     left = contents.index("(")
     num = 1
     right = left #right"("の位置ではないけど暫定的に
@@ -54,7 +52,7 @@ def parse(tokens)
   end
   if contents[0] == "define"
     unless $variables.has_key?(contents[1].downcase.intern)
-      unless contents[2].class == Class
+      unless contents[2].class == Function
         $variables[contents[1].downcase.intern] = eval(contents[2].to_s)
       else
         $variables[contents[1].downcase.intern] = contents[2]
@@ -77,6 +75,18 @@ def parse(tokens)
   end
   if contents[0] == "/"
     return parse([contents[1]]) * parse([contents[1]]) / contents[1...(contents.length)].inject(1){|sum, i| sum * parse([i]) }
+  end
+  if !contents[0].nil? and (contents[0].class == Function or $variables[contents[0].downcase.intern].class == Function)
+    ex = Array.new
+    obj = contents[0].class == Function ? contents[0] : parse([contents[0]])
+    obj.func.each do |val|
+      if i = obj.args.index(val.intern)
+        ex.push(contents[i+1])
+      else
+        ex.push(val)
+      end
+    end
+    return parse(ex)
   end
   if tokens[0] =~ /-?[1-9][0-9]*/ or tokens[0] == "0" or tokens[0] =~ /-?[1-9][0-9]*\.[0-9]+/ or tokens =~ /-?0\.[0-9]+/
     return tokens[0].to_f
