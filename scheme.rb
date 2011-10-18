@@ -4,13 +4,57 @@ $variables = Hash.new
 class Function
   attr_accessor :args, :len, :func
 end
+class Pair
+  def initialize(tokens)
+    @pair = Array.new
+    temp_pair = @pair
+    while token = tokens.shift
+      temp_pair[0] = token
+      temp_pair[1] = Array.new
+      temp_pair = temp_pair[1]
+    end
+    @list = @pair.flatten
+  end
+  attr_accessor :pair, :list
+end
+
+def search_list(tokens)
+  tokens.each_with_index do |t,i|
+    if t == "'("
+      right = i
+      num = 0
+      while true
+        right = tokens[(right+1)...(tokens.length)].index(")") + right + 1
+        break if num == tokens.slice(i,right).find_all{|ch|ch=="("}.length
+        num += 1
+      end
+      inner_contents = tokens.slice!(i..right).slice(1...(right-i-1))
+      tokens[i,0] =  Pair.new(search_list(inner_contents))
+      return tokens
+    end
+    if t == "quote"
+      right = i - 1
+      num = 0
+      while true
+        right = tokens[(right+1)...(tokens.length)].index(")") + right + 1
+        break if num == tokens.slice(i-1,right).find_all{|ch|ch=="("}.length
+        num += 1
+      end
+      inner_contents = tokens.slice!(i-1..right).slice(1...(right-i))
+      tokens[i-1] =Pair.new(search_list(inner_contents))
+      return tokens
+    end
+    return tokens
+  end
+  return tokens
+end
 
 def tokenize(line)
   temp = line.split()
   tokens = Array.new
   temp.each do |word|
     while word =~ /\(/
-      tokens.push($&)
+      tokens.push($`+$&)
       word = $'
     end
     if word =~ /\)/
@@ -19,7 +63,7 @@ def tokenize(line)
       word = $'
     else
       tokens.push(word)
-    end  
+    end
     while word =~ /\)/
       tokens.push($&)
       word = $'
@@ -99,6 +143,6 @@ end
 
 
 while(print "> "; line = gets)
-  out = parse(tokenize(line))
+  out = parse(search_list(tokenize(line)))
   p out unless out.nil?
 end
